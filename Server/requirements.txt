@@ -1,0 +1,13 @@
+# production demos
+pandas
+
+# networking / api
+flask
+requests
+
+# scraping
+selenium
+
+# ml lib
+tensorflow
+keras

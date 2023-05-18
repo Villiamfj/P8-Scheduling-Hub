@@ -1,0 +1,41 @@
+<html>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<body>
+
+<div id="myPlot" style="width:100%;max-width:700px"></div>
+
+<script>
+
+async function getData(){
+  response = await fetch("/stats")
+  json = await response.json()
+  return json
+}
+
+async function updatePlot(){
+  json = await getData();
+  plot(json);
+}
+
+// this is inspirede by w3's plotly example
+function plot(json){
+    var data = [
+      { x: json.forecastx, y: json.forecasty, mode:"lines", name:"Forecast"},
+      { x: json.prodx, y: json.prod, mode:"lines", name: "history"},
+      { x: json.xdraw, y: json.ydraw, mode:"lines", name:"device draw"}
+    ];
+
+    var layout = {
+      xaxis: {title: "posix time"},
+      yaxis: {title: "kw"},  
+      title: "Status"
+    };
+
+    Plotly.newPlot("myPlot", data, layout);
+}
+
+setInterval(updatePlot,10000)
+</script>
+
+</body>
+</html>
