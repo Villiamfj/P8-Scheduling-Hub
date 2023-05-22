@@ -106,12 +106,19 @@ class ForecastScheduler(Scheduler):
         
         remaningProduction = currentProduction - sum(job.draw for job in self.jobs if job.running)
         self.jobs.sort(key= lambda job : job.deadline if job.deadline != 0 else float("inf"))
+
+        for job in self.jobs:
+            if job.deadline and not (job. running or job.finished) and job.deadline - job.duration <= timeStamp + (self.forecaster.timeLen / self.stepsInADay):
+                job.deviceCommand(timeStamp)
+                result.append(job)
+                remaningProduction -= job.draw
+                
+            if job.running and timeStamp >= job.started + job.duration:
+                job.stop()
+
         for job in self.jobs:
             # fit in schedule if not given an estimat and earliest start within forecast
-            if not self.jobsSch.get(job.name):
-                self.fitJob(job,timeStamp)
-
-            elif job.earliestStart < self.forecastDeadline and not (job.running or job.finished) and self.jobsSch.get(job.name) != self.forecastDeadline:
+            if not (job.running or job.finished) and self.jobsSch.get(job.name) != self.forecastDeadline:
                 self.fitJob(job,timeStamp)
             
             # start if estimated to run
@@ -121,9 +128,6 @@ class ForecastScheduler(Scheduler):
                 job.deviceCommand(timeStamp) 
                 result.append(job)
                 remaningProduction -= job.draw
-            
-            if job.running and timeStamp >= job.started + job.duration:
-                job.stop()
         
         return result
 
@@ -137,16 +141,20 @@ class ForecastScheduler(Scheduler):
         duration = m.ceil(job.duration / step)
 
         deadline = 0
-        if job.deadline:
-            deadline = self.stepsInADay - m.floor((forecastEnd - job.deadline) / step)
+        if job.deadline and job.deadline < forecastEnd:
+            deadline = m.floor((job.deadline - self.forecastAge) / step)
+
 
         earliestStart = 0
-        if job.earliestStart:
-            earliestStart = m.ceil((forecastEnd - job.earliestStart) / step)
-            # the job cannot start within this forecast
-            if earliestStart < 0:
+        if job.earliestStart and job.earliestStart > self.forecastAge:
+            # cannot be scheduled within this forecast
+            earliestStart = m.ceil((job.earliestStart - self.forecastAge) / step)
+            print(earliestStart)
+            if earliestStart >= self.forecaster.forecastLen - duration:
+                # job cannot run within forecast
+                self.jobsSch[job.name] = self.forecastDeadline
                 return
-
+            
         bestPlace = location
         bestPrice = float("inf")
         for i in range(location, self.forecaster.forecastLen - duration):
