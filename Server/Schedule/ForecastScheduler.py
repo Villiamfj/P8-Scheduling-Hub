@@ -59,7 +59,7 @@ class ForecastScheduler(Scheduler):
 
         # The forecaster returns 48 points in a day
         self.forecaster = Forecaster(modelLocation, 48, forecastTimeLen)
-        self.naive = naiveScheduler(self.jobs, start_threshold, diff_threshold)
+        self.naive = naiveScheduler(self.jobs, start_threshold, diff_threshold, forecastTimeLen / stepsInADay)
         
         self.stepsInADay = stepsInADay
         self.timeToForecast = timeBetweenForecast
