@@ -120,7 +120,7 @@ class Solar_power_device_demo(Prod_device):
     
     def get_history(self) -> List[int]:
         """ returns history data, which can be used to forecast"""
-        if self.counter >= 288: # the dataset contains 96 steps per day
+        if self.counter >= 288: # the data contains 288 steps per day
             return [i for i in self.data[self.counter - 288: self.counter]]
         return [i for i in self.data[0 : self.counter]]
 
