@@ -18,11 +18,12 @@ class testJob(Job):
         self.finished = True
     
 class naiveScheduler(Scheduler):
-    def __init__(self, jobs: List[Job], start_threshold: int|float, diff_threshold: int|float) -> None:
+    def __init__(self, jobs: List[Job], start_threshold: int|float, diff_threshold: int|float, interval: int|float) -> None:
         super().__init__()
         self.jobs = jobs
         self.start_threshold = start_threshold
         self.diff_threshold = diff_threshold
+        self.interval = interval
 
     def run(self, timeStamp: int|float, currentProduction: int|float) -> List[Job]:
         """
@@ -43,7 +44,7 @@ class naiveScheduler(Scheduler):
                 remainingProduction -= job.draw
 
             # Inforcing jobs before the deadline is reached
-            elif timeStamp >= job.deadline - job.duration and not job.finished and job.deadline != 0:
+            elif timeStamp >= job.deadline - job.duration - self.interval and not job.finished and job.deadline != 0:
                 startedJobs.append(job)
                 job.deviceCommand(timeStamp)
                 remainingProduction -= job.draw
